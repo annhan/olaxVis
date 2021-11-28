@@ -35,6 +35,7 @@
             this.getIp = new System.Windows.Forms.Button();
             this.resultCheckIP = new System.Windows.Forms.TextBox();
             this.dataGet = new System.Windows.Forms.TextBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.SuspendLayout();
@@ -51,6 +52,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.button1);
             this.tabPage1.Controls.Add(this.dataGet);
             this.tabPage1.Controls.Add(this.resultCheckIP);
             this.tabPage1.Controls.Add(this.getIp);
@@ -82,7 +84,6 @@
             this.resetOlax.TabIndex = 0;
             this.resetOlax.Text = "resetOlax";
             this.resetOlax.UseVisualStyleBackColor = true;
-            this.resetOlax.UseWaitCursor = true;
             this.resetOlax.Click += new System.EventHandler(this.resetOlax_Click);
             // 
             // getIp
@@ -93,7 +94,6 @@
             this.getIp.TabIndex = 1;
             this.getIp.Text = "getIp";
             this.getIp.UseVisualStyleBackColor = true;
-            this.getIp.UseWaitCursor = true;
             this.getIp.Click += new System.EventHandler(this.getIp_Click);
             // 
             // resultCheckIP
@@ -110,6 +110,16 @@
             this.dataGet.Name = "dataGet";
             this.dataGet.Size = new System.Drawing.Size(270, 325);
             this.dataGet.TabIndex = 3;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(112, 364);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Form1
             // 
@@ -135,6 +145,7 @@
         private System.Windows.Forms.Button resetOlax;
         private System.Windows.Forms.TextBox dataGet;
         private System.Windows.Forms.TextBox resultCheckIP;
+        private System.Windows.Forms.Button button1;
     }
 }
 

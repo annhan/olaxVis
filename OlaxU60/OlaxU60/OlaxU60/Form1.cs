@@ -81,6 +81,13 @@ namespace OlaxU60
         }
         private void resetOlaxData()
         {
+            
+
+            //string result = response.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine(result);
+        }
+        private void resetOlax_Click(object sender, EventArgs e)
+        {
             var values = new Dictionary<string, string>
             {
                 { "goformId", "REBOOT_DEVICE" }
@@ -92,18 +99,16 @@ namespace OlaxU60
             var client = new HttpClient();
 
             var response = client.PostAsync(url, data);
-
-            //string result = response.Content.ReadAsStringAsync().Result;
-            //Console.WriteLine(result);
-        }
-        private void resetOlax_Click(object sender, EventArgs e)
-        {
-            resetOlaxData();
         }
 
         private void getIp_Click(object sender, EventArgs e)
         {
             getmyIp();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
