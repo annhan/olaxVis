@@ -35,12 +35,22 @@ namespace OlaxU60
 
             var request = WebRequest.Create(url);
             request.Method = "GET";
-
-            var webResponse = request.GetResponse();
-            var webStream = webResponse.GetResponseStream();
-
-            var reader = new StreamReader(webStream);
-            var data = reader.ReadToEnd();
+            request.Timeout = 1000;
+            string data = "";
+            try
+            {
+                var webResponse = request.GetResponse();
+                var webStream = webResponse.GetResponseStream();
+                var reader = new StreamReader(webStream);
+                data = reader.ReadToEnd();
+            }
+            catch (Exception e)
+            {
+                resultCheckIP.Text = "Khong Connect";
+                resultCheckIP.BackColor = Color.Red;
+                return;
+            }
+            
             dynamic json = JsonConvert.DeserializeObject(data);
             //dataGet.ResetText();
             listIP[numberIP] = json["ip"].ToString();
@@ -75,9 +85,16 @@ namespace OlaxU60
             }
             resultCheckIP.ResetText();
             if (kq == 0)
+            {
+                resultCheckIP.BackColor = Color.LightGreen;
                 resultCheckIP.Text = "OK";
+            }
             else
+            {
                 resultCheckIP.Text = "Trung IP";
+                resultCheckIP.BackColor = Color.Red;
+            }
+                
         }
         private void resetOlaxData()
         {
@@ -107,6 +124,65 @@ namespace OlaxU60
         }
 
         private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void resultCheckIP_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        static void Enable(string interfaceName)
+        {
+            System.Diagnostics.ProcessStartInfo psi =
+                   new System.Diagnostics.ProcessStartInfo("netsh", "interface set interface \"" + interfaceName + "\" enable");
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo = psi;
+            p.Start();
+            p.WaitForExit();
+        }
+
+        static void Disable(string interfaceName)
+        {
+            System.Diagnostics.ProcessStartInfo psi =
+                new System.Diagnostics.ProcessStartInfo("netsh", "interface set interface \"" + interfaceName + "\" disable");
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo = psi;
+            p.Start();
+            p.WaitForExit();
+        }
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //TextBox t = (TextBox)namecard;
+
+            string namecard1 = namecard.Text;
+            Disable(namecard1);
+            //System.Threading.Thread.Sleep(5000);
+            Enable(namecard1);
+        }
+
+        private void tabPage3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
         {
 
         }
