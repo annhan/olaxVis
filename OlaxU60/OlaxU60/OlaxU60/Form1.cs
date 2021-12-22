@@ -21,9 +21,11 @@ namespace OlaxU60
         int numberIP = 0;
         string typeapn = "";
         int dem = 0;
+        int nhamang = 0; // 0 -mobi , 1- viettel, 2 vina
         public Form1()
         {
             InitializeComponent();
+            comboBox1.SelectedIndex = comboBox1.Items.IndexOf("Mobifone");
         }
 
         private void tabPage1_Click(object sender, EventArgs e)
@@ -33,7 +35,7 @@ namespace OlaxU60
         private static void Initialize()
         {
         }
-        private void getmyIp()
+        private async Task getmyIp()
         {
             Initialize();
             int kq = 0;
@@ -55,7 +57,7 @@ namespace OlaxU60
 
                 resultCheckIP.Text = "Khong Connect";
                 resultCheckIP.BackColor = Color.Red;
-                MessageBox.Show("Done - Check IP Again");
+                //MessageBox.Show("Done - Check IP Again");
                 return;
             }
             
@@ -96,16 +98,16 @@ namespace OlaxU60
             if (kq == 0)
             {
                 resultCheckIP.BackColor = Color.LightGreen;
-                text= "Dont -OK";
+                text= "Done -OK";
                 resultCheckIP.Text = "OK";
             }
             else
             {
-                text = "Dont - Trung IP";
+                text = "Done - Trung IP";
                 resultCheckIP.Text = "Trung IP";
                 resultCheckIP.BackColor = Color.Red;
             }
-            MessageBox.Show(text);
+            //MessageBox.Show(text);
 
         }
         private void resetOlaxData()
@@ -130,9 +132,9 @@ namespace OlaxU60
             var response = client.PostAsync(url, data);
         }
 
-        private void getIp_Click(object sender, EventArgs e)
+        private async void getIp_Click(object sender, EventArgs e)
         {
-            getmyIp();
+            await getmyIp();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -218,6 +220,10 @@ namespace OlaxU60
         {
 
         }
+        public async Task sleepT(int timems)
+        {
+            System.Threading.Thread.Sleep(timems);
+        }
         public async Task<string> checkmode()
         {
             string URL = "http://192.168.8.1/reqproc/proc_get?cmd=apn_mode";
@@ -284,7 +290,7 @@ namespace OlaxU60
             };
 //isTest=false&goformId=APN_PROC_EX&apn_mode=manual&apn_action=set_default&set_default_flag=1&pdp_type=IP&index=1
 
-            var apn2 = new Dictionary<string, string>
+            var apnmenu = new Dictionary<string, string>
             {
                 { "isTest", "false" },
                 { "goformId", "APN_PROC_EX" },
@@ -294,34 +300,111 @@ namespace OlaxU60
                 { "pdp_type", "IP" },
                  { "index", "1" }
             };
-            //textBox1.Text = "Disconnect";
-            //textBox1.BackColor = Color.Red;
-            var client = new HttpClient();
+            var settingMobi = new Dictionary<string, string>
+            {
+                { "isTest", "false" },
+                { "goformId", "APN_PROC_EX" },
+                { "apn_action", "save" },
+                { "apn_mode", "manual" },
+                { "profile_name", "Tesst" },
+                { "wan_dial", "*99 % 23" },
+                { "apn_select", "manual" },
+                { "pdp_type", "IP" },
+                { "pdp_select", "auto" },
+                { "pdp_addr", "" },
+                { "index", "1" },
+                { "wan_apn", "internet" },
+                { "ppp_auth_mode", "none" },
+                { "ppp_username", "mms" },
+                { "ppp_passwd", "mms" }
+            };
+            var settingVt = new Dictionary<string, string>
+            {
+                { "isTest", "false" },
+                { "goformId", "APN_PROC_EX" },
+                { "apn_action", "save" },
+                { "apn_mode", "manual" },
+                { "profile_name", "Tesst" },
+                { "wan_dial", "*99 % 23" },
+                { "apn_select", "manual" },
+                { "pdp_type", "IP" },
+                { "pdp_select", "auto" },
+                { "pdp_addr", "" },
+                { "index", "1" },
+                { "wan_apn", "internet" },
+                { "ppp_auth_mode", "none" },
+                { "ppp_username", "mms" },
+                { "ppp_passwd", "mms" }
+            };
+            var settingVina = new Dictionary<string, string>
+            {
+                { "isTest", "false" },
+                { "goformId", "APN_PROC_EX" },
+                { "apn_action", "save" },
+                { "apn_mode", "manual" },
+                { "profile_name", "Tesst" },
+                { "wan_dial", "*99 % 23" },
+                { "apn_select", "manual" },
+                { "pdp_type", "IP" },
+                { "pdp_select", "auto" },
+                { "pdp_addr", "" },
+                { "index", "1" },
+                { "wan_apn", "internet" },
+                { "ppp_auth_mode", "none" },
+                { "ppp_username", "mms" },
+                { "ppp_passwd", "mms" }
+            };
             dem++;
-            var data = new FormUrlEncodedContent(disconect);
+            var client = new HttpClient();
+            var settingapn = settingMobi;
+            if (nhamang == 1)
+            {
+                settingapn = settingVt;
+            }
+            else if (nhamang == 1)
+            {
+                settingapn = settingVina;
+            }
+            var data = new FormUrlEncodedContent(settingapn);
             var url = "http://192.168.8.1/reqproc/proc_post";
-            var response = client.PostAsync(url, data);
-            //textBox1.Text = "Change";
-            //textBox1.BackColor = Color.Red;
             if (dem % 2 == 0)
             {
-                data = new FormUrlEncodedContent(apn1);
             }
             else
             {
-                data = new FormUrlEncodedContent(apn2);
+                await client.PostAsync(url, data);
             }
-            response = client.PostAsync(url, data);
-            System.Threading.Thread.Sleep(200);
-            //textBox1.Text = "Connect";
-            //textBox1.BackColor = Color.Red;
+            await sleepT(50);
+            textBox1.Text = "Disconnect";
+            textBox1.BackColor = Color.Red;
+            data = new FormUrlEncodedContent(disconect);
+            var response = await client.PostAsync(url, data);
+            await sleepT(50);
+            textBox1.BackColor = Color.Red;
+            
+            if (dem % 2 == 0)
+            {
+                data = new FormUrlEncodedContent(apn1);
+                textBox1.Text = "Auto Mode";
+            }
+            else
+            {
+                data = new FormUrlEncodedContent(apnmenu);
+                textBox1.Text = "Menu Mode";
+            }
+            response = await client.PostAsync(url, data);
+            await sleepT(200);
             data = new FormUrlEncodedContent(connect);
-            response = client.PostAsync(url, data);
-            System.Threading.Thread.Sleep(2200);
-            getmyIp();
-            //textBox1.Text = typeapn;
-            //textBox1.BackColor = Color.LightGreen;
-
+            textBox1.Text = "Connect";
+            textBox1.BackColor = Color.Red;
+            
+            response = await client.PostAsync(url, data);
+            await sleepT(2200);
+            textBox1.Text = "get IP";
+            textBox1.BackColor = Color.Red;
+            await getmyIp();
+            textBox1.Text = "Done";
+            textBox1.BackColor = Color.LightGreen;
         }
 
         private void textBox1_TextChanged_2(object sender, EventArgs e)
@@ -342,6 +425,36 @@ namespace OlaxU60
         private void label4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkedListBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+            ComboBox cmb = (ComboBox)sender;
+            int selectedIndex = comboBox1.SelectedIndex;
+            string selectedText = this.comboBox1.Text;
+            if (selectedText == "Mobifone")
+            {
+                nhamang = 0;
+            }
+            else if (selectedText == "Viettel")
+            {
+                nhamang = 1;
+            }
+            else
+            {
+                nhamang = 2;
+            }
         }
     }
 }
