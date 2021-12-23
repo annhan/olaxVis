@@ -324,17 +324,17 @@ namespace OlaxU60
                 { "goformId", "APN_PROC_EX" },
                 { "apn_action", "save" },
                 { "apn_mode", "manual" },
-                { "profile_name", "Tesst" },
+                { "profile_name", "v-internet" },
                 { "wan_dial", "*99 % 23" },
                 { "apn_select", "manual" },
                 { "pdp_type", "IP" },
                 { "pdp_select", "auto" },
                 { "pdp_addr", "" },
                 { "index", "1" },
-                { "wan_apn", "internet" },
+                { "wan_apn", "v-internet" },
                 { "ppp_auth_mode", "none" },
-                { "ppp_username", "mms" },
-                { "ppp_passwd", "mms" }
+                { "ppp_username", "" },
+                { "ppp_passwd", "" }
             };
             var settingVina = new Dictionary<string, string>
             {
@@ -349,7 +349,7 @@ namespace OlaxU60
                 { "pdp_select", "auto" },
                 { "pdp_addr", "" },
                 { "index", "1" },
-                { "wan_apn", "internet" },
+                { "wan_apn", "m3-world" },
                 { "ppp_auth_mode", "none" },
                 { "ppp_username", "mms" },
                 { "ppp_passwd", "mms" }
