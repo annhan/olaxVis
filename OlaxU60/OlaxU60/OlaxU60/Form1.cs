@@ -12,7 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.IO;
 using Newtonsoft.Json;
-using System.Windows;
+using System.Net.Sockets;
 namespace OlaxU60
 {
     public partial class Form1 : Form
@@ -265,6 +265,36 @@ namespace OlaxU60
                 typeapn = "fail";
             }*/
         }
+
+
+        public Boolean CheckCurrentIP()
+        {
+
+            // Get all network interfaces addresses
+            IPAddress[] localIPAddress = Dns.GetHostAddresses(Dns.GetHostName());
+            myLocalIP.ResetText();
+            myLocalIP.AppendText("My Local IP ");
+            myLocalIP.AppendText("\r\n");
+            // Change the current using address <Code>localIPAddress[0]</Code> to IPV4 string format
+            foreach (IPAddress temIP in localIPAddress)
+            {
+                if (temIP.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    string LocalIP = temIP.ToString();
+                    //break;
+                    myLocalIP.AppendText(LocalIP);
+                    if (LocalIP.Contains("192.168.8"))
+                    {
+                        myLocalIP.AppendText(" My Dcom ");
+                        return true;
+                    }
+                    myLocalIP.AppendText("\r\n");
+                    Console.WriteLine(temIP);
+                }
+                
+            }
+            return false;
+        }
         private async void ChangeNetwork_Click(object sender, EventArgs e)
         {
 
@@ -355,56 +385,72 @@ namespace OlaxU60
                 { "ppp_passwd", "mms" }
             };
             dem++;
-            var client = new HttpClient();
-            var settingapn = settingMobi;
-            if (nhamang == 1)
+            try
             {
-                settingapn = settingVt;
-            }
-            else if (nhamang == 1)
-            {
-                settingapn = settingVina;
-            }
-            var data = new FormUrlEncodedContent(settingapn);
-            var url = "http://192.168.8.1/reqproc/proc_post";
-            if (dem % 2 == 0)
-            {
-            }
+
+                if (CheckCurrentIP()) { 
+                var client = new HttpClient();
+                var settingapn = settingMobi;
+                if (nhamang == 1)
+                {
+                    settingapn = settingVt;
+                }
+                else if (nhamang == 1)
+                {
+                    settingapn = settingVina;
+                }
+                var data = new FormUrlEncodedContent(settingapn);
+                var url = "http://192.168.8.1/reqproc/proc_post";
+                if (dem % 2 == 0)
+                {
+                }
+                else
+                {
+                    await client.PostAsync(url, data);
+                }
+                await sleepT(50);
+                textBox1.Text = "Disconnect";
+                textBox1.BackColor = Color.Red;
+                data = new FormUrlEncodedContent(disconect);
+                var response = await client.PostAsync(url, data);
+                await sleepT(50);
+                textBox1.BackColor = Color.Red;
+
+                if (dem % 2 == 0)
+                {
+                    data = new FormUrlEncodedContent(apn1);
+                    textBox1.Text = "Auto Mode";
+                }
+                else
+                {
+                    data = new FormUrlEncodedContent(apnmenu);
+                    textBox1.Text = "Menu Mode";
+                }
+                response = await client.PostAsync(url, data);
+                await sleepT(200);
+                data = new FormUrlEncodedContent(connect);
+                textBox1.Text = "Connect";
+                textBox1.BackColor = Color.Red;
+
+                response = await client.PostAsync(url, data);
+                await sleepT(2200);
+                textBox1.Text = "get IP";
+                textBox1.BackColor = Color.Red;
+                await getmyIp();
+                textBox1.Text = "Done";
+                textBox1.BackColor = Color.LightGreen;
+                }
             else
             {
-                await client.PostAsync(url, data);
+                textBox1.Text = "Don't have\r\nDCOM\r\n192.168.8.x";
+                textBox1.BackColor = Color.LightGreen;
             }
-            await sleepT(50);
-            textBox1.Text = "Disconnect";
-            textBox1.BackColor = Color.Red;
-            data = new FormUrlEncodedContent(disconect);
-            var response = await client.PostAsync(url, data);
-            await sleepT(50);
-            textBox1.BackColor = Color.Red;
-            
-            if (dem % 2 == 0)
+        }
+            catch
             {
-                data = new FormUrlEncodedContent(apn1);
-                textBox1.Text = "Auto Mode";
+                textBox1.Text = "Fail";
+                textBox1.BackColor = Color.LightGreen;
             }
-            else
-            {
-                data = new FormUrlEncodedContent(apnmenu);
-                textBox1.Text = "Menu Mode";
-            }
-            response = await client.PostAsync(url, data);
-            await sleepT(200);
-            data = new FormUrlEncodedContent(connect);
-            textBox1.Text = "Connect";
-            textBox1.BackColor = Color.Red;
-            
-            response = await client.PostAsync(url, data);
-            await sleepT(2200);
-            textBox1.Text = "get IP";
-            textBox1.BackColor = Color.Red;
-            await getmyIp();
-            textBox1.Text = "Done";
-            textBox1.BackColor = Color.LightGreen;
         }
 
         private void textBox1_TextChanged_2(object sender, EventArgs e)
@@ -455,6 +501,22 @@ namespace OlaxU60
             {
                 nhamang = 2;
             }
+        }
+
+        private void label3_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            Clipboard.SetText(lblmyaddress.Text);
+            MessageBox.Show("Copy done");
         }
     }
 }
