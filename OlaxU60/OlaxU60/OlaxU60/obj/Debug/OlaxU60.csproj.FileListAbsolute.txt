@@ -1,4 +1,3 @@
-E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.csprojAssemblyReference.cache
 E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.Form1.resources
 E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.Properties.Resources.resources
 E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.csproj.GenerateResource.cache
@@ -11,3 +10,4 @@ E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\bin\Debug\Newtonsoft.Json.xml
 E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.csproj.CopyComplete
 E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.exe
 E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.pdb
+E:\Arduino\Github\olaxVis\OlaxU60\OlaxU60\OlaxU60\obj\Debug\OlaxU60.csprojAssemblyReference.cache

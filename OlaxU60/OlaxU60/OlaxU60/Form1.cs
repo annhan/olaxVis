@@ -13,6 +13,9 @@ using System.Net.Http;
 using System.IO;
 using Newtonsoft.Json;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
+using System.Management;
+
 namespace OlaxU60
 {
     public partial class Form1 : Form
@@ -25,6 +28,7 @@ namespace OlaxU60
         public Form1()
         {
             InitializeComponent();
+            getlistcard();
             comboBox1.SelectedIndex = comboBox1.Items.IndexOf("Mobifone");
         }
 
@@ -132,34 +136,32 @@ namespace OlaxU60
             var response = client.PostAsync(url, data);
         }
 
-        private async void getIp_Click(object sender, EventArgs e)
-        {
-            await getmyIp();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tabPage2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void resultCheckIP_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+    
 
         static void Enable(string interfaceName)
         {
             System.Diagnostics.ProcessStartInfo psi =
                    new System.Diagnostics.ProcessStartInfo("netsh", "interface set interface \"" + interfaceName + "\" enable");
             System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             p.StartInfo = psi;
             p.Start();
             p.WaitForExit();
+            /*
+            Process cmd = new Process();
+            string cmdline = String.Format("netsh interface set interface \" {0} \" enable", interfaceName);
+            MessageBox.Show(cmdline);
+            cmd.StartInfo.FileName = "cmd.exe";
+            cmd.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            cmd.StartInfo.CreateNoWindow = true;
+            cmd.StartInfo.Arguments = cmdline;
+            cmd.Start();
+            cmd.WaitForExit();
+            */
         }
 
         static void Disable(string interfaceName)
@@ -167,59 +169,55 @@ namespace OlaxU60
             System.Diagnostics.ProcessStartInfo psi =
                 new System.Diagnostics.ProcessStartInfo("netsh", "interface set interface \"" + interfaceName + "\" disable");
             System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             p.StartInfo = psi;
             p.Start();
             p.WaitForExit();
         }
-        private void button2_Click(object sender, EventArgs e)
+        static void restartnetwork(string nameintefaces)
+        {
+
+        }
+        private void getlistcard()
+        {
+            namenetwork.Items.Clear();
+            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus == OperationalStatus.Up)
+                {             
+                    if (ni.Name.Contains("Ethernet"))
+                    {namenetwork.Items.Add(ni.Name);}
+                }
+            }
+
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            getlistcard();
+        }
+        private async void button2_Click(object sender, EventArgs e)
         {
             //TextBox t = (TextBox)namecard;
-
-            string namecard1 = namecard.Text;
-            Disable(namecard1);
-            //System.Threading.Thread.Sleep(5000);
-            Enable(namecard1);
-        }
-
-        private void tabPage3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
+            string namecard1 = this.namenetwork.Text;// namecard.Text;
+            if(namecard1 == "")
+            {
+                statusreset.Text = "Chua Chon card mạng";
+            }
+            else
+            {
+                Disable(namecard1);
+                //System.Threading.Thread.Sleep(5000);
+                Enable(namecard1);
+                await sleepT(1000);
+                await getmyIp();
+            }
 
         }
 
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tabPage1_Click_1(object sender, EventArgs e)
-        {
-
-        }
-
-        private void groupBox1_Enter(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox1_TextChanged_1(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
         public async Task sleepT(int timems)
         {
             System.Threading.Thread.Sleep(timems);
@@ -453,35 +451,7 @@ namespace OlaxU60
             }
         }
 
-        private void textBox1_TextChanged_2(object sender, EventArgs e)
-        {
 
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkedListBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -503,20 +473,30 @@ namespace OlaxU60
             }
         }
 
-        private void label3_Click_1(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label4_Click_1(object sender, EventArgs e)
-        {
-
-        }
-
         private void button1_Click_1(object sender, EventArgs e)
         {
             Clipboard.SetText(lblmyaddress.Text);
             MessageBox.Show("Copy done");
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void getIp_Click(object sender, EventArgs e)
+        {
+            getmyIp();
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
