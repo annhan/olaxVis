@@ -34,7 +34,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.autoclose = True
         self.currentTime = 0 
         self.set_style()
-        self.setWindowFlag(Qt.WindowStaysOnTopHint)
+        #self.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         self.btn_1.clicked.connect(self.btn_1_click)  
         self.btn_2.clicked.connect(self.btn_2_click)
