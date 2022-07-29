@@ -87,13 +87,14 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         else:
             self.lbl_status.setText("IP - OK")
         self.check_ip_dupl(value)
-        self.lbl_log.append("{}: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),value))
+        self.lbl_log.append("{}:GET IP {}".format(datetime.datetime.now().strftime("%H:%M:%S"),value))
         self.lbl_ip.setText(value)
         print_debug("finish")
 
     def reset_ip_finish_event(self,value):
         self.lbl_status.setText("Reset Done")
         print_debug("reset finish")
+        self.lbl_log.append("{}: SESET OK ".format(datetime.datetime.now().strftime("%H:%M:%S")))
         self.status_reset = False
     ############
     ## thread
@@ -120,11 +121,6 @@ class CustomMessageBox(QtWidgets.QMainWindow):
                 found = m.group(1)
                 self.lbl_log.append("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
             return
-        """
-         session not created: This version of ChromeDriver only supports Chrome version 104
-            Current browser version is 103.0.5060.134 with binary path C:\Program Files\Google\Chrome\Application\chrome.exe
-        
-        """
         username = config.TYPE_ROUTER['user']
         password = config.TYPE_ROUTER['pass']
         try:
