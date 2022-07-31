@@ -50,7 +50,6 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         #self.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         self.btn_1.clicked.connect(self.btn_1_click)  
-        self.btn_1_click(1)# load ip when begin
         self.btn_2.clicked.connect(self.btn_2_click)
         self.btn_3.clicked.connect(self.btn_3_click)
         self.reset_ip_finish.connect(self.reset_ip_finish_event)
@@ -64,6 +63,21 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.btn_update_user_2.clicked.connect(self.update_router_click) # updaye type router
         self.btn_group_main.buttonClicked.connect(self.change_main_windown_click) # updaye type router
         self.check_code()
+        self.add_combobox()
+        self.btn_1_click(1)# load ip when begin
+
+    def add_combobox(self):
+        self.comboBox.addItems(['FPT G97RG6W'])
+        self.comboBox.setCurrentIndex(int(self.name))
+        #self.comboxBox.currentData()
+        #self.combo_box.currentText()
+
+    def update_router_click(self):
+        data = self.comboBox.currentIndex()
+        
+        self.name = data
+        print_debug("Router change to {}".format(self.name )) 
+        self.config.save_type_router(str(self.name))
 
 
     def set_default(self):
@@ -72,7 +86,6 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.btn_1.setText("Get IP")
         self.btn_2.setText("Change IP")
         self.btn_3.setText("Change and Check IP")
-        self.btn_4.hide()
         self.input_user.setText(self.user)
         self.input_pass.setText(self.password)
         self.input_license.setText(self.license)
@@ -80,6 +93,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         
         self.lbl_about.setText("@annhandt09")
         self.lbl_status_license.setText("Checking ...")
+
     def check_code(self):
         try:
             secret = base64.b32encode(bytes(self.password, encoding='ascii'))
@@ -112,6 +126,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
  
     def disable_license(self):
         self.status_license = False   
+
     ####################
     ## Event GUI
     ###############)
@@ -128,29 +143,35 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.config.set_license(self.license,self.license_code)
         self.check_code()
 
-    def update_router_click(self):
-        pass
+
+
+    def check_license(func):
+        def check(self,*args, **kwarg):
+            if self.status_license == False: 
+                self.lbl_status.setText("License Error")
+                return     
+            func(self,*args, **kwarg)
+
+        return check        
+
     def change_main_windown_click(self,btn):
         index = btn.property("index")
         if index is None: return 
         self.tab_main.setCurrentIndex(index)
-    def btn_2_click(self,value):
-        if self.status_license == False: 
-            self.lbl_status.setText("License Error")
-            return        
 
+    @check_license
+    def btn_2_click(self,value=1):    
         if self.status_reset == True:return
         function = self.reset_FPT_97RG6W
-        if self.name == "FPT-G-97RG6W":
+        if int(self.name) == 0: #"FPT-G-97RG6W"
             function = self.reset_FPT_97RG6W
 
         t1=Thread(target=function)
         t1.start()
 
-    def btn_1_click(self,value):
-        if self.status_license == False: 
-            self.lbl_status.setText("License Error")
-            return
+    @check_license
+    def btn_1_click(self,value=1):
+
         if self.status_reset == True:return
         if self.status_get_ip == True:return
         self.status_get_ip = True
@@ -158,10 +179,8 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         t1=Thread(target=self.read_ip_thread)
         t1.start() 
 
-    def btn_3_click(self,value):
-        if self.status_license == False: 
-            self.lbl_status.setText("License Error")
-            return        
+    @check_license
+    def btn_3_click(self,value=1):
         t1=Thread(target=self.auto)
         t1.start()
     #################################
@@ -176,14 +195,17 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         else:
             self.lbl_status.setText("IP - OK")
         self.check_ip_dupl(value)
-        self.lbl_log.append("{}:GET IP {}".format(datetime.datetime.now().strftime("%H:%M:%S"),value))
+        self.lbl_log.append("{}: GET IP {}".format(datetime.datetime.now().strftime("%H:%M:%S"),value))
         self.lbl_ip.setText(value)
         print_debug("finish")
 
     def reset_ip_finish_event(self,value):
-        self.lbl_status.setText("Reset Done")
+        if value == "er":
+            self.lbl_status.setText("Reset Error")
+        else:
+            self.lbl_status.setText("Reset Done")
         print_debug("reset finish")
-        self.lbl_log.append("{}: SESET OK ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+        self.lbl_log.append("{}: RESET OK ".format(datetime.datetime.now().strftime("%H:%M:%S")))
         self.status_reset = False
 
     ############
@@ -197,59 +219,79 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         time.sleep(1)
         self.btn_1_click(1)
 
-    def reset_FPT_97RG6W(self):      
-
-        self.status_reset = True
-        self.lbl_status.setText("Waiting Reset")
-        options = webdriver.ChromeOptions()
-
-        options.binary_location  = './GoogleChromePortable/GoogleChromePortable.exe'    #  <==  IMPORTANT! See note below.
-        options.add_argument("headless")
-        chromedriverpath='chromedriver.exe' #chromedriverpath
-        #options.add_argument('--no-sandbox')
-        #options.add_argument('--no-default-browser-check')
-        #options.add_argument('--no-first-run')
-        #options.add_argument('--disable-gpu')
-        #options.add_argument('--disable-extensions')
-        #options.add_argument('--disable-default-apps')
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    def reset_FPT_97RG6W(self):    
+        def close_chrome(dri):
+            try: 
+                dri.close() 
+            except Exception as e : 
+                print_debug("can't closechrome {}".format(e)) 
+            time.sleep(1)
+            try: 
+                dri.quit() 
+            except Exception as e : 
+                print_debug("can't quit chrome {}".format(e)) 
+            #dri.dispose()
         try:
-            driver = webdriver.Chrome(chromedriverpath, options=options)
-        except Exception as e: 
-            print_debug("error Exception {}".format(e)) 
-            m = re.search("version is (.+?) with binary path", str(e))
-            if m:
-                found = m.group(1)
-                self.lbl_log.append("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
-            return
-        username = self.user
-        password = self.password
-        try:
-            driver.get(self.page)
-            driver.implicitly_wait(20)
+            self.status_reset = True
+            self.lbl_status.setText("Waiting Reset")
+            options = webdriver.ChromeOptions()
 
-            try:    
-                button = driver.find_element(By.ID,"username").send_keys(username)
-                button = driver.find_element(By.ID,"password").send_keys(password)
-                button = driver.find_element(By.ID,'btn_login').click()
-            except Exception as e:  
-                print_debug("fdfffffffffffffffffffffffff",e)
-            driver.implicitly_wait(5)
-            driver.switch_to.frame("contentfrm")
-            button = driver.find_element(By.ID ,"waninfo").click()
-            driver.implicitly_wait(5)
-            button = driver.find_element(By.ID,'btn_reconnect').click()
-        except Exception as e: 
-            print_debug("error Exception{}".format(e)) 
-        try: 
-            driver.close() 
-        except : pass
-        time.sleep(0.1)
-        try: driver.quit() 
-        except : pass
-        self.reset_ip_finish.emit("ip")
+            options.binary_location  = './GoogleChromePortable/GoogleChromePortable.exe'    #  <==  IMPORTANT! See note below.
+            options.add_argument("headless")
+            chromedriverpath='chromedriver.exe' #chromedriverpath
+            #options.add_argument('--no-sandbox')
+            #options.add_argument('--no-default-browser-check')
+            #options.add_argument('--no-first-run')
+            #options.add_argument('--disable-gpu')
+            #options.add_argument('--disable-extensions')
+            #options.add_argument('--disable-default-apps')
 
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--no-sandbox")
+            options.add_experimental_option('excludeSwitches', ['enable-logging'])
+            try:
+                driver = webdriver.Chrome(chromedriverpath, options=options)
+            except Exception as e: 
+                print_debug("error Exception {}".format(e)) 
+                m = re.search("version is (.+?) with binary path", str(e))
+                if m:
+                    found = m.group(1)
+                    self.lbl_log.append("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
+                close_chrome(driver)
+                return
+            
+            username = self.user
+            password = self.password
+            try:
+                driver.get(self.page)
+                driver.implicitly_wait(20)
 
+                try:    
+                    button = driver.find_element(By.ID,"username").send_keys(username)
+                    button = driver.find_element(By.ID,"password").send_keys(password)
+                    button = driver.find_element(By.ID,'btn_login').click()
+                except Exception as e:  
+                    print_debug("fdfffffffffffffffffffffffff",e)
+                driver.implicitly_wait(5)
+                driver.switch_to.frame("contentfrm")
+                button = driver.find_element(By.ID ,"waninfo").click()
+                driver.implicitly_wait(5)
+                button = driver.find_element(By.ID,'btn_reconnect').click()
+            except Exception as e: 
+                print_debug("error Exception{}".format(e)) 
+            self.lbl_status.setText("Waiting Close")
+            close_chrome(driver)
+            self.reset_ip_finish.emit("ip")
+
+        except : 
+            try:
+                close_chrome(driver)
+            except Exception as e : 
+                print_debug("can't  chrome {}".format(e)) 
+            self.reset_ip_finish.emit("er")
+            #shutil.rmtree(r'D:\\Chromee\\' + str(i))
 
     def read_ip_thread(self): #(w, verify=False, timeout=10)
                         

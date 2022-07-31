@@ -13,6 +13,10 @@ class config():
         self.config.set('ROUTER', 'user', user)
         self.config.set('ROUTER', 'pass', password)
         self.save()
+
+    def save_type_router(self,type):
+        self.config.set('ROUTER', 'name', type)
+        self.save()
     def get_router(self):
         user = self.config.get('ROUTER', 'user')
         passw = self.config.get('ROUTER', 'pass')
