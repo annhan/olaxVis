@@ -1,7 +1,7 @@
 #!/usr/bin/ python3
 # coding: utf8
 
-import requests, json ,time , datetime , sys ,re
+import requests, time , datetime , sys ,re
 from PySide2 import QtWidgets,QtCore
 from PySide2.QtCore import Qt 
 from pysideLoadUi import loadUi
@@ -10,10 +10,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from threading import *
-#from importlib.machinery import SourceFileLoader
-#config = SourceFileLoader( 'config', './config.py' ).load_module()
+from threading import Thread
+from threading import Lock
 import requests
 from get_config import config 
 import pyotp
@@ -34,8 +32,9 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.license,self.license_code = self.config.get_license()
         self.server,self.timeout = self.config.get_ip()
         
-        self.status_reset = False
-        self.status_get_ip = False
+        self.status_reset = Lock()
+        self.status_get_ip = Lock()
+        self.status_lock_auto = Lock()
         self.idDevice = 0
         loadUi(ui, self )
         self.set_default()
@@ -94,14 +93,20 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.lbl_about.setText("@annhandt09")
         self.lbl_status_license.setText("Checking ...")
 
-    def check_code(self):
+    def create_license_key(self,secret_code):
+        code = 000000
         try:
-            secret = base64.b32encode(bytes(self.password, encoding='ascii'))
+            secret = base64.b32encode(bytes(secret_code, encoding='ascii'))
             hotp = pyotp.HOTP(secret)
-            hotp.at(0) # => '260182'
-            hotp.at(1) # => '055283'
             code = hotp.at(1401) # => '316439'
             code = int(code)
+        except Exception as e: 
+            print_debug("error Exception check code {}".format(e))  
+        return code
+
+    def check_code(self):
+        try:
+            code = self.create_license_key(self.password)
             if (int(self.license_code) == code):
                 self.status_license = True
                 self.lbl_status_license.setText("License OK.")
@@ -114,12 +119,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
 
     def genera_license_click(self):
         try:
-            secret = base64.b32encode(bytes(self.password, encoding='ascii'))
-            hotp = pyotp.HOTP(secret)
-            hotp.at(0) # => '260182'
-            hotp.at(1) # => '055283'
-            code = hotp.at(1401) # => '316439'
-            code = int(code)
+            code = self.create_license_key(self.password)
             print_debug("get {}".format(code))
         except Exception as e: 
             print_debug("error Exception check code {}".format(e))  
@@ -161,7 +161,6 @@ class CustomMessageBox(QtWidgets.QMainWindow):
 
     @check_license
     def btn_2_click(self,value=1):    
-        if self.status_reset == True:return
         function = self.reset_FPT_97RG6W
         if int(self.name) == 0: #"FPT-G-97RG6W"
             function = self.reset_FPT_97RG6W
@@ -171,10 +170,6 @@ class CustomMessageBox(QtWidgets.QMainWindow):
 
     @check_license
     def btn_1_click(self,value=1):
-
-        if self.status_reset == True:return
-        if self.status_get_ip == True:return
-        self.status_get_ip = True
         self.lbl_status.setText("Waiting Get IP")
         t1=Thread(target=self.read_ip_thread)
         t1.start() 
@@ -188,7 +183,6 @@ class CustomMessageBox(QtWidgets.QMainWindow):
     #################################
     def thread_read_ip_finish(self,value):
         self.lbl_status.setText("Get Ip Done")
-        self.status_get_ip = False
         print_debug('My public IP address is main: {}'.format(value))
         if value == '0':
             self.lbl_status.setText("IP - Error")
@@ -206,18 +200,20 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             self.lbl_status.setText("Reset Done")
         print_debug("reset finish")
         self.lbl_log.append("{}: RESET OK ".format(datetime.datetime.now().strftime("%H:%M:%S")))
-        self.status_reset = False
+
 
     ############
     ## thread
     ####################
     def auto(self):
-        self.btn_2_click(1)
-        time.sleep(1)
-        while (self.status_reset == True):
+        if self.status_lock_auto.acquire(timeout = 1) == False: return   
+        try:
+            self.btn_2_click(1)
+            self.status_reset.acquire()   
             time.sleep(1)
-        time.sleep(1)
-        self.btn_1_click(1)
+            self.btn_1_click(1)
+        finally:
+            self.status_lock_auto.release()
 
     def reset_FPT_97RG6W(self):    
         def close_chrome(dri):
@@ -231,8 +227,8 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             except Exception as e : 
                 print_debug("can't quit chrome {}".format(e)) 
             #dri.dispose()
+        if self.status_reset.acquire(timeout = 1) == False: return  
         try:
-            self.status_reset = True
             self.lbl_status.setText("Waiting Reset")
             options = webdriver.ChromeOptions()
 
@@ -253,6 +249,28 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             options.add_experimental_option('excludeSwitches', ['enable-logging'])
             try:
                 driver = webdriver.Chrome(chromedriverpath, options=options)
+                username = self.user
+                password = self.password
+                try:
+                    driver.get(self.page)
+                    driver.implicitly_wait(20)
+
+                    try:    
+                        button = driver.find_element(By.ID,"username").send_keys(username)
+                        button = driver.find_element(By.ID,"password").send_keys(password)
+                        button = driver.find_element(By.ID,'btn_login').click()
+                    except Exception as e:  
+                        print_debug("fdfffffffffffffffffffffffff",e)
+                    driver.implicitly_wait(5)
+                    driver.switch_to.frame("contentfrm")
+                    button = driver.find_element(By.ID ,"waninfo").click()
+                    driver.implicitly_wait(5)
+                    button = driver.find_element(By.ID,'btn_reconnect').click()
+                except Exception as e: 
+                    print_debug("error Exception{}".format(e)) 
+                self.lbl_status.setText("Waiting Close")
+                close_chrome(driver)
+                self.reset_ip_finish.emit("ip")
             except Exception as e: 
                 print_debug("error Exception {}".format(e)) 
                 m = re.search("version is (.+?) with binary path", str(e))
@@ -260,48 +278,27 @@ class CustomMessageBox(QtWidgets.QMainWindow):
                     found = m.group(1)
                     self.lbl_log.append("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
                 close_chrome(driver)
-                return
-            
-            username = self.user
-            password = self.password
-            try:
-                driver.get(self.page)
-                driver.implicitly_wait(20)
-
-                try:    
-                    button = driver.find_element(By.ID,"username").send_keys(username)
-                    button = driver.find_element(By.ID,"password").send_keys(password)
-                    button = driver.find_element(By.ID,'btn_login').click()
-                except Exception as e:  
-                    print_debug("fdfffffffffffffffffffffffff",e)
-                driver.implicitly_wait(5)
-                driver.switch_to.frame("contentfrm")
-                button = driver.find_element(By.ID ,"waninfo").click()
-                driver.implicitly_wait(5)
-                button = driver.find_element(By.ID,'btn_reconnect').click()
-            except Exception as e: 
-                print_debug("error Exception{}".format(e)) 
-            self.lbl_status.setText("Waiting Close")
-            close_chrome(driver)
-            self.reset_ip_finish.emit("ip")
-
         except : 
             try:
                 close_chrome(driver)
             except Exception as e : 
                 print_debug("can't  chrome {}".format(e)) 
             self.reset_ip_finish.emit("er")
+        finally: 
+            self.status_reset.release()
             #shutil.rmtree(r'D:\\Chromee\\' + str(i))
 
     def read_ip_thread(self): #(w, verify=False, timeout=10)
-                        
+        if self.status_get_ip.acquire(timeout = 1) == False: return             
         try: 
             print_debug("get {}  {}".format(self.server,self.timeout))
             ip = requests.get(self.server, timeout= float(self.timeout)).content.decode('utf8')
         except requests.exceptions.Timeout as e: 
             print_debug("error {}".format(e))
             ip = '0'
-        self.read_ip_finish.emit(ip)
+        finally:
+            self.status_get_ip.release()
+            self.read_ip_finish.emit(ip)
     ##################
     ## funtions  #####
     ##################
