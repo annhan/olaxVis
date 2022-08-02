@@ -4,3 +4,5 @@
 Python/GoogleChromePortable
 Python/dist/GoogleChromePortable
 Python/build/check/*
+Python/build/check
+Python/build/check/EXE-00.toc
