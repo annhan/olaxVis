@@ -20,6 +20,111 @@ import base64
 def print_debug(*msg):
     print(datetime.datetime.now().strftime("%H:%M:%S"), "|" , *msg, flush=True)
     sys.stdout.flush()
+class reset_ip_Olax():
+    def __init__(self,user = None , password = None, page = None):
+        self.username = user
+        self.password = password
+        self.page = page
+    def run(self):
+        print_debug("reset olax")
+        return ("{}: Airtel chưa xây dựng ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+
+class reset_ip_Viettel():
+    def __init__(self,user = None , password = None, page = None):
+        self.username = user
+        self.password = password
+        self.page = page
+    def run(self):
+        print_debug("reset olax")
+        return ("{}: Viettel chưa xây dựng ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+
+class reset_ip_VNPT():
+    def __init__(self,user = None , password = None, page = None):
+        self.username = user
+        self.password = password
+        self.page = page
+    def run(self):
+        print_debug("reset olax")
+        return ("{}: VNPT chưa xây dựng ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+
+class reset_ip_FPT():
+    def __init__(self,user = None , password = None, page = None):
+        self.username = user
+        self.password = password
+        self.page = page
+    def run(self):
+
+
+        def close_chrome(dri):
+            try: 
+                dri.close() 
+            except Exception as e : 
+                print_debug("can't closechrome {}".format(e)) 
+            time.sleep(1)
+            try: 
+                dri.quit() 
+            except Exception as e : 
+                print_debug("can't quit chrome {}".format(e)) 
+            #dri.dispose()
+        try:
+            msg1 = ""
+            msg2 = ""
+            options = webdriver.ChromeOptions()
+
+            options.binary_location  = './GoogleChromePortable/GoogleChromePortable.exe'    #  <==  IMPORTANT! See note below.
+            options.add_argument("headless")
+            chromedriverpath='chromedriver.exe' #chromedriverpath
+            #options.add_argument('--no-sandbox')
+            #options.add_argument('--no-default-browser-check')
+            #options.add_argument('--no-first-run')
+            #options.add_argument('--disable-gpu')
+            #options.add_argument('--disable-extensions')
+            #options.add_argument('--disable-default-apps')
+
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--no-sandbox")
+            options.add_experimental_option('excludeSwitches', ['enable-logging'])
+            try:
+                driver = webdriver.Chrome(chromedriverpath, options=options)
+                username = self.username
+                password = self.password
+                try:
+                    driver.get(self.page)
+                    driver.implicitly_wait(20)
+
+                    try:    
+                        button = driver.find_element(By.ID,"username").send_keys(username)
+                        button = driver.find_element(By.ID,"password").send_keys(password)
+                        button = driver.find_element(By.ID,'btn_login').click()
+                    except Exception as e:  
+                        print_debug("fdfffffffffffffffffffffffff",e)
+                    driver.implicitly_wait(5)
+                    driver.switch_to.frame("contentfrm")
+                    button = driver.find_element(By.ID ,"waninfo").click()
+                    driver.implicitly_wait(5)
+                    button = driver.find_element(By.ID,'btn_reconnect').click()
+                except Exception as e: 
+                    print_debug("error Exception{}".format(e)) 
+                close_chrome(driver)
+            except Exception as e: 
+                print_debug("error Exception {}".format(e)) 
+                m = re.search("version is (.+?) with binary path", str(e))
+                if m:
+                    found = m.group(1)
+                    msg2 = ("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
+                close_chrome(driver)
+
+        except : 
+            try:
+                close_chrome(driver)
+            except Exception as e : 
+                print_debug("can't  chrome {}".format(e)) 
+        finally: 
+            return msg2
+
+
 
 class CustomMessageBox(QtWidgets.QMainWindow):
     reset_ip_finish = QtCore.Signal(str)
@@ -66,7 +171,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.btn_1_click(1)# load ip when begin
 
     def add_combobox(self):
-        self.comboBox.addItems(['FPT G97RG6W'])
+        self.comboBox.addItems(['FPT G97RG6W','USB 4G Airtel', 'Viettel' , 'VNPT'])
         self.comboBox.setCurrentIndex(int(self.name))
         #self.comboxBox.currentData()
         #self.combo_box.currentText()
@@ -161,10 +266,8 @@ class CustomMessageBox(QtWidgets.QMainWindow):
 
     @check_license
     def btn_2_click(self,value=1):    
-        function = self.reset_FPT_97RG6W
-        if int(self.name) == 0: #"FPT-G-97RG6W"
-            function = self.reset_FPT_97RG6W
 
+        function = self.thread_reset_ip
         t1=Thread(target=function)
         t1.start()
 
@@ -215,78 +318,29 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         finally:
             self.status_lock_auto.release()
 
-    def reset_FPT_97RG6W(self):    
-        def close_chrome(dri):
-            try: 
-                dri.close() 
-            except Exception as e : 
-                print_debug("can't closechrome {}".format(e)) 
-            time.sleep(1)
-            try: 
-                dri.quit() 
-            except Exception as e : 
-                print_debug("can't quit chrome {}".format(e)) 
-            #dri.dispose()
+    def get_type_router(self):
+        if int(self.name) == 0: #"FPT-G-97RG6W"
+            fund = reset_ip_FPT(self.user,self.password,self.page)
+        elif int(self.name) == 1: # USB 4G 
+            fund = reset_ip_Olax(self.user,self.password,self.page)
+        elif int(self.name) == 2: # USB 4G 
+            fund = reset_ip_Viettel(self.user,self.password,self.page)
+        elif int(self.name) == 3: # USB 4G 
+            fund = reset_ip_VNPT(self.user,self.password,self.page)
+        return fund
+
+    def thread_reset_ip(self):
+        fund = self.get_type_router()
         if self.status_reset.acquire(timeout = 1) == False: return  
         try:
             self.lbl_status.setText("Waiting Reset")
-            options = webdriver.ChromeOptions()
-
-            options.binary_location  = './GoogleChromePortable/GoogleChromePortable.exe'    #  <==  IMPORTANT! See note below.
-            options.add_argument("headless")
-            chromedriverpath='chromedriver.exe' #chromedriverpath
-            #options.add_argument('--no-sandbox')
-            #options.add_argument('--no-default-browser-check')
-            #options.add_argument('--no-first-run')
-            #options.add_argument('--disable-gpu')
-            #options.add_argument('--disable-extensions')
-            #options.add_argument('--disable-default-apps')
-
-            options.add_argument("--disable-extensions")
-            options.add_argument("--disable-gpu")
-            options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--no-sandbox")
-            options.add_experimental_option('excludeSwitches', ['enable-logging'])
-            try:
-                driver = webdriver.Chrome(chromedriverpath, options=options)
-                username = self.user
-                password = self.password
-                try:
-                    driver.get(self.page)
-                    driver.implicitly_wait(20)
-
-                    try:    
-                        button = driver.find_element(By.ID,"username").send_keys(username)
-                        button = driver.find_element(By.ID,"password").send_keys(password)
-                        button = driver.find_element(By.ID,'btn_login').click()
-                    except Exception as e:  
-                        print_debug("fdfffffffffffffffffffffffff",e)
-                    driver.implicitly_wait(5)
-                    driver.switch_to.frame("contentfrm")
-                    button = driver.find_element(By.ID ,"waninfo").click()
-                    driver.implicitly_wait(5)
-                    button = driver.find_element(By.ID,'btn_reconnect').click()
-                except Exception as e: 
-                    print_debug("error Exception{}".format(e)) 
-                self.lbl_status.setText("Waiting Close")
-                close_chrome(driver)
-                self.reset_ip_finish.emit("ip")
-            except Exception as e: 
-                print_debug("error Exception {}".format(e)) 
-                m = re.search("version is (.+?) with binary path", str(e))
-                if m:
-                    found = m.group(1)
-                    self.lbl_log.append("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
-                close_chrome(driver)
-        except : 
-            try:
-                close_chrome(driver)
-            except Exception as e : 
-                print_debug("can't  chrome {}".format(e)) 
+            self.lbl_log.append(fund.run())
+            self.reset_ip_finish.emit("ok")
+        except Exception as e :
             self.reset_ip_finish.emit("er")
         finally: 
             self.status_reset.release()
-            #shutil.rmtree(r'D:\\Chromee\\' + str(i))
+            
 
     def read_ip_thread(self): #(w, verify=False, timeout=10)
         if self.status_get_ip.acquire(timeout = 1) == False: return             
