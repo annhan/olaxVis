@@ -52,9 +52,8 @@ class reset_ip_FPT():
         self.username = user
         self.password = password
         self.page = page
+
     def run(self):
-
-
         def close_chrome(dri):
             try: 
                 dri.close() 
@@ -70,24 +69,20 @@ class reset_ip_FPT():
             msg1 = ""
             msg2 = ""
             options = webdriver.ChromeOptions()
-
-            options.binary_location  = './GoogleChromePortable/GoogleChromePortable.exe'    #  <==  IMPORTANT! See note below.
+            #options.binary_location  = r'E:\\Arduino\\Github\\01Finance\\olaxVis\\Python\\GoogleChromePortable\\GoogleChromePortable.exe'  
+            #options.binary_location  = 'E:/Arduino/Github/01Finance/olaxVis/Python/GoogleChromePortable/GoogleChromePortable.exe'  
+            options.binary_location  = './GoogleChromePortable/App/Chrome-bin/chrome.exe'
             options.add_argument("headless")
             chromedriverpath='chromedriver.exe' #chromedriverpath
-            #options.add_argument('--no-sandbox')
-            #options.add_argument('--no-default-browser-check')
-            #options.add_argument('--no-first-run')
-            #options.add_argument('--disable-gpu')
-            #options.add_argument('--disable-extensions')
-            #options.add_argument('--disable-default-apps')
-
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-gpu")
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--no-sandbox")
             options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
             try:
-                driver = webdriver.Chrome(chromedriverpath, options=options)
+                driver = webdriver.Chrome(options=options)
+                #webdriver.Chrome(executable_path=chromedriverpath, options=chromeoptions)
                 username = self.username
                 password = self.password
                 try:
@@ -248,15 +243,12 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.config.set_license(self.license,self.license_code)
         self.check_code()
 
-
-
     def check_license(func):
         def check(self,*args, **kwarg):
             if self.status_license == False: 
                 self.lbl_status.setText("License Error")
                 return     
             func(self,*args, **kwarg)
-
         return check        
 
     def change_main_windown_click(self,btn):
@@ -281,6 +273,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
     def btn_3_click(self,value=1):
         t1=Thread(target=self.auto)
         t1.start()
+        
     #################################
     ## Event thrad finish ###########
     #################################
