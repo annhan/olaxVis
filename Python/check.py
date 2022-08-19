@@ -309,6 +309,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             time.sleep(1)
             self.btn_1_click(1)
         finally:
+            self.status_reset.release()
             self.status_lock_auto.release()
 
     def get_type_router(self):
