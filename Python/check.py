@@ -136,48 +136,48 @@ class reset_ip_FPT():
 class CustomMessageBox(QtWidgets.QMainWindow):
     reset_ip_finish = QtCore.Signal(str)
     read_ip_finish = QtCore.Signal(str)
+    status_reset = Lock()
+    status_get_ip = Lock()
+    status_lock_auto = Lock()
+    _status_license = False
+    
     def __init__(self,style=None,ui = 'ui.ui'):
         super().__init__()
         self.config = config()
-        self.user,self.password,self.name,self.page = self.config.get_router()
+        self.user, self.password, self.name, self.page = self.config.get_router()
         self.gchrome_path = self.config.get_chrome_path()
-        self.license,self.license_code = self.config.get_license()
-        self.server,self.timeout = self.config.get_ip()
-        
-        self.status_reset = Lock()
-        self.status_get_ip = Lock()
-        self.status_lock_auto = Lock()
+        self.__license, self.__license_code = self.config.get_license()
+        self.server, self.timeout = self.config.get_ip()
         self.idDevice = 0
         loadUi(ui, self )
-        self.set_default()
-        self.status_license = False
+        self.__set_default()
         self.autoclose = True
         self.currentTime = 0 
-        self.set_style()
-        if "show code" in self.input_license.toPlainText():
-            self.btn_update_license_2.show()  
-        else:
-            self.btn_update_license_2.hide()  
+        self.__set_style()
         #self.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_DeleteOnClose, True)
+
+        self.lbl_status.setText("Fail")
+        self.mylist_ip = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        self.i = 0
+        self.init_event_gui()
+        self.__check_code()
+        self.__add_combobox()
+        self.btn_1_click(1)# load ip when begin
+
+    def init_event_gui(self):
         self.btn_1.clicked.connect(self.btn_1_click)  
         self.btn_2.clicked.connect(self.btn_2_click)
         self.btn_3.clicked.connect(self.btn_3_click)
         self.reset_ip_finish.connect(self.reset_ip_finish_event)
         self.read_ip_finish.connect(self.thread_read_ip_finish)
-        self.lbl_status.setText("Fail")
-        self.mylist_ip = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        self.i = 0
         self.btn_update_user.clicked.connect(self.btn_update_user_click)  
         self.btn_update_license.clicked.connect(self.update_license_click) #update license
         self.btn_update_license_2.clicked.connect(self.genera_license_click) #update license
         self.btn_update_user_2.clicked.connect(self.update_router_click) # updaye type router
-        self.btn_group_main.buttonClicked.connect(self.change_main_windown_click) # updaye type router
-        self.check_code()
-        self.add_combobox()
-        self.btn_1_click(1)# load ip when begin
-
-    def add_combobox(self):
+        self.btn_group_main.buttonClicked.connect(self.change_main_windown_click) # updaye type router        
+        
+    def __add_combobox(self):
         self.comboBox.addItems(['FPT G97RG6W','USB 4G Airtel', 'Viettel' , 'VNPT'])
         self.comboBox.setCurrentIndex(int(self.name))
         #self.comboxBox.currentData()
@@ -191,7 +191,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.config.save_type_router(str(self.name))
 
 
-    def set_default(self):
+    def __set_default(self):
         self.tab_main.setCurrentIndex(0)
         self.setWindowTitle("CHANGE IP OF ROUTER")
         self.btn_1.setText("Get IP")
@@ -199,13 +199,18 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.btn_3.setText("Change and Check IP")
         self.input_user.setText(self.user)
         self.input_pass.setText(self.password)
-        self.input_license.setText(self.license)
-        self.input_license_CODE.setText(self.license_code)
+        self.input_license.setText(self.__license)
+        self.input_license_CODE.setText(self.__license_code)
         
         self.lbl_about.setText("@annhandt09")
         self.lbl_status_license.setText("Checking ...")
+        if "show code" in self.input_license.toPlainText():
+            self.btn_update_license_2.show()  
+        else:
+            self.btn_update_license_2.hide() 
 
-    def create_license_key(self,secret_code):
+    @staticmethod
+    def __create_license_key(secret_code):
         code = 000000
         try:
             secret = base64.b32encode(bytes(secret_code, encoding='ascii'))
@@ -216,11 +221,11 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             print_debug(f"error Exception check code {e}")
         return code
 
-    def check_code(self):
+    def __check_code(self):
         try:
-            code = self.create_license_key(self.password)
-            if (int(self.license_code) == code):
-                self.status_license = True
+            code = self.__create_license_key(self.password)
+            if (int(self.__license_code) == code):
+                self._status_license = True
                 self.lbl_status_license.setText("License OK.")
             else:
                 self.disable_license()
@@ -231,13 +236,13 @@ class CustomMessageBox(QtWidgets.QMainWindow):
 
     def genera_license_click(self):
         try:
-            code = self.create_license_key(self.password)
+            code = self.__create_license_key(self.password)
             print_debug(f"get {code}")
         except Exception as e: 
             print_debug(f"error Exception check code {e}")  
  
     def disable_license(self):
-        self.status_license = False   
+        self._status_license = False   
 
     ####################
     ## Event GUI
@@ -249,15 +254,15 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.config.save_user_web(self.user,self.password)
 
     def update_license_click(self):
-        self.license =  self.input_license.toPlainText()
-        self.license_code =self.input_license_CODE.toPlainText()
-        print_debug(f"new license {self.license} - code:{self.license_code}")
-        self.config.set_license(self.license,self.license_code)
-        self.check_code()
+        self.__license =  self.input_license.toPlainText()
+        self.__license_code =self.input_license_CODE.toPlainText()
+        print_debug(f"new license {self.__license} - code:{self.__license_code}")
+        self.config.set_license(self.__license,self.__license_code)
+        self.__check_code()
 
     def check_license(func):
         def check(self,*args, **kwarg):
-            #if self.status_license == False: 
+            #if self._status_license == False: 
             #    self.lbl_status.setText("License Error")
             #    return     
             func(self,*args, **kwarg)
@@ -377,7 +382,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         self.mylist_ip[self.i] = value
         print_debug("ok")
 
-    def set_style(self,type = 0):
+    def __set_style(self,type = 0):
         self.setStyleSheet("""
                             QDialog { 
                                 border-radius: 30px; 
