@@ -1,7 +1,7 @@
 #!/usr/bin/ python3
 # coding: utf8
 
-import requests, time , datetime , sys ,re
+import time  , sys ,re
 from PySide2 import QtWidgets,QtCore
 from PySide2.QtCore import Qt 
 from pysideLoadUi import loadUi
@@ -16,55 +16,71 @@ import requests
 from get_config import config 
 import pyotp
 import base64
+from datetime import datetime
 
 def print_debug(*msg):
-    print(datetime.datetime.now().strftime("%H:%M:%S"), "|" , *msg, flush=True)
+    print(datetime.now().strftime("%H:%M:%S"), "|" , *msg, flush=True)
     sys.stdout.flush()
+    
 class reset_ip_Olax():
     def __init__(self,user = None , password = None, page = None):
-        self.username = user
-        self.password = password
+        self.__username = user
+        self.__password = password
         self.page = page
+        
     def run(self):
         print_debug("reset olax")
-        return ("{}: Airtel chưa xây dựng ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+        return f'{datetime.now().strftime("%H:%M:%S")}: Airtel chưa xây dựng '
 
 class reset_ip_Viettel():
     def __init__(self,user = None , password = None, page = None):
-        self.username = user
-        self.password = password
+        self.__username = user
+        self.__password = password
         self.page = page
     def run(self):
         print_debug("reset olax")
-        return ("{}: Viettel chưa xây dựng ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+        return f'{datetime.now().strftime("%H:%M:%S")}: Viettel chưa xây dựng '
 
 class reset_ip_VNPT():
     def __init__(self,user = None , password = None, page = None):
-        self.username = user
-        self.password = password
+        self.__username = user
+        self.__password = password
         self.page = page
     def run(self):
         print_debug("reset olax")
-        return ("{}: VNPT chưa xây dựng ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+        return f'{datetime.now().strftime("%H:%M:%S")}: VNPT chưa xây dựng '
 
 class reset_ip_FPT():
     def __init__(self,user = None , password = None, page = None):
-        self.username = user
-        self.password = password
+        self.__username = user
+        self.__password = password
         self.page = page
 
+    @staticmethod
+    def close_chrome(dri):
+        try: 
+            dri.close()
+        except Exception as e: 
+            print_debug(f"can't closechrome {e}")
+        time.sleep(1)
+        try: 
+            dri.quit()
+        except Exception as e: 
+            print_debug(f"can't quit chrome {e}") 
+        #dri.dispose()
+        
+    @staticmethod
+    def log_error(msg):
+        return_value = ""
+        print_debug(f"error Exception {msg}")
+        m = re.search("version is (.+?) with binary path", str(msg))
+        if m:
+            found = m.group(1)
+            return_value = f'{datetime.now().strftime("%H:%M:%S")}: NEED to download chromedriver ver: {found}' 
+        return  return_value    
+
     def run(self):
-        def close_chrome(dri):
-            try: 
-                dri.close() 
-            except Exception as e : 
-                print_debug("can't closechrome {}".format(e)) 
-            time.sleep(1)
-            try: 
-                dri.quit() 
-            except Exception as e : 
-                print_debug("can't quit chrome {}".format(e)) 
-            #dri.dispose()
+
         try:
             msg1 = ""
             msg2 = ""
@@ -83,8 +99,8 @@ class reset_ip_FPT():
             try:
                 driver = webdriver.Chrome(options=options)
                 #webdriver.Chrome(executable_path=chromedriverpath, options=chromeoptions)
-                username = self.username
-                password = self.password
+                username = self.__username
+                password = self.__password
                 try:
                     driver.get(self.page)
                     driver.implicitly_wait(20)
@@ -101,21 +117,17 @@ class reset_ip_FPT():
                     driver.implicitly_wait(5)
                     button = driver.find_element(By.ID,'btn_reconnect').click()
                 except Exception as e: 
-                    print_debug("error Exception{}".format(e)) 
-                close_chrome(driver)
+                    print_debug(f"error Exception{e}")
+                self.close_chrome(driver)
             except Exception as e: 
-                print_debug("error Exception {}".format(e)) 
-                m = re.search("version is (.+?) with binary path", str(e))
-                if m:
-                    found = m.group(1)
-                    msg2 = ("{}: NEED to download chromedriver ver: {}".format(datetime.datetime.now().strftime("%H:%M:%S"),found))
-                close_chrome(driver)
+                msg2 = self.log_error(e)
+                self.close_chrome(driver)
 
-        except : 
+        except Exception as e: 
             try:
-                close_chrome(driver)
-            except Exception as e : 
-                print_debug("can't  chrome {}".format(e)) 
+                self.close_chrome(driver)
+            except Exception as e: 
+                print_debug(f"can't  chrome {e}")
         finally: 
             return msg2
 
@@ -173,9 +185,9 @@ class CustomMessageBox(QtWidgets.QMainWindow):
 
     def update_router_click(self):
         data = self.comboBox.currentIndex()
-        
+
         self.name = data
-        print_debug("Router change to {}".format(self.name )) 
+        print_debug(f"Router change to {self.name}")
         self.config.save_type_router(str(self.name))
 
 
@@ -201,7 +213,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             code = hotp.at(1401) # => '316439'
             code = int(code)
         except Exception as e: 
-            print_debug("error Exception check code {}".format(e))  
+            print_debug(f"error Exception check code {e}")
         return code
 
     def check_code(self):
@@ -215,14 +227,14 @@ class CustomMessageBox(QtWidgets.QMainWindow):
                 self.lbl_status_license.setText("License Error.")
         except Exception as e: 
             self.disable_license()
-            print_debug("error Exception check code {}".format(e)) 
+            print_debug(f"error Exception check code {e}") 
 
     def genera_license_click(self):
         try:
             code = self.create_license_key(self.password)
-            print_debug("get {}".format(code))
+            print_debug(f"get {code}")
         except Exception as e: 
-            print_debug("error Exception check code {}".format(e))  
+            print_debug(f"error Exception check code {e}")  
  
     def disable_license(self):
         self.status_license = False   
@@ -231,23 +243,23 @@ class CustomMessageBox(QtWidgets.QMainWindow):
     ## Event GUI
     ###############)
     def btn_update_user_click(self):
-        self.user =  self.input_user.toPlainText()   
+        self.user =  self.input_user.toPlainText()
         self.password =self.input_pass.toPlainText()
-        print_debug("new user {} - password:{}".format(self.user,self.password))
+        print_debug(f"new user {self.user} - password:{self.password}")
         self.config.save_user_web(self.user,self.password)
 
     def update_license_click(self):
-        self.license =  self.input_license.toPlainText()   
+        self.license =  self.input_license.toPlainText()
         self.license_code =self.input_license_CODE.toPlainText()
-        print_debug("new license {} - code:{}".format(self.license,self.license_code))
+        print_debug(f"new license {self.license} - code:{self.license_code}")
         self.config.set_license(self.license,self.license_code)
         self.check_code()
 
     def check_license(func):
         def check(self,*args, **kwarg):
-            if self.status_license == False: 
-                self.lbl_status.setText("License Error")
-                return     
+            #if self.status_license == False: 
+            #    self.lbl_status.setText("License Error")
+            #    return     
             func(self,*args, **kwarg)
         return check        
 
@@ -279,23 +291,24 @@ class CustomMessageBox(QtWidgets.QMainWindow):
     #################################
     def thread_read_ip_finish(self,value):
         self.lbl_status.setText("Get Ip Done")
-        print_debug('My public IP address is main: {}'.format(value))
+        #print_debug(f'My public IP address is main: {value}')
         if value == '0':
             self.lbl_status.setText("IP - Error")
         else:
             self.lbl_status.setText("IP - OK")
-        self.check_ip_dupl(value)
-        self.lbl_log.append("{}: GET IP {}".format(datetime.datetime.now().strftime("%H:%M:%S"),value))
+        self.__check_ip_dupl(value)
+        self.lbl_log.append(f'{datetime.now().strftime("%H:%M:%S")}: GET IP {value}')
+
         self.lbl_ip.setText(value)
-        print_debug("finish")
+        #print_debug("finish")
 
     def reset_ip_finish_event(self,value):
         if value == "er":
             self.lbl_status.setText("Reset Error")
         else:
             self.lbl_status.setText("Reset Done")
-        print_debug("reset finish")
-        self.lbl_log.append("{}: RESET OK ".format(datetime.datetime.now().strftime("%H:%M:%S")))
+        #print_debug("reset finish")
+        self.lbl_log.append(f'{datetime.now().strftime("%H:%M:%S")}: RESET OK ')
 
 
     ############
@@ -312,7 +325,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             self.status_reset.release()
             self.status_lock_auto.release()
 
-    def get_type_router(self):
+    def __get_type_router(self):
         if int(self.name) == 0: #"FPT-G-97RG6W"
             fund = reset_ip_FPT(self.user,self.password,self.page)
         elif int(self.name) == 1: # USB 4G 
@@ -324,7 +337,7 @@ class CustomMessageBox(QtWidgets.QMainWindow):
         return fund
 
     def thread_reset_ip(self):
-        fund = self.get_type_router()
+        fund = self.__get_type_router()
         if self.status_reset.acquire(timeout = 1) == False: return  
         try:
             self.lbl_status.setText("Waiting Reset")
@@ -337,26 +350,27 @@ class CustomMessageBox(QtWidgets.QMainWindow):
             
 
     def read_ip_thread(self): #(w, verify=False, timeout=10)
-        if self.status_get_ip.acquire(timeout = 1) == False: return             
+        if self.status_get_ip.acquire(timeout = 1) == False: return
         try: 
-            print_debug("get {}  {}".format(self.server,self.timeout))
+            print_debug(f"get {self.server}  {self.timeout}")
             ip = requests.get(self.server, timeout= float(self.timeout)).content.decode('utf8')
         except requests.exceptions.Timeout as e: 
-            print_debug("error {}".format(e))
+            print_debug(f"error {e}")
             ip = '0'
         finally:
             self.status_get_ip.release()
             self.read_ip_finish.emit(ip)
+            
     ##################
     ## funtions  #####
     ##################
-    def check_ip_dupl(self,value):
+    def __check_ip_dupl(self,value):
         if value == '0': 
             return
         self.i = self.i + 1
         if self.i>19:
             self.i = 0
-        for i in range(0,19):
+        for i in range(19):
             if value == self.mylist_ip[i]:
                 self.lbl_status.setText("IP - Trùng")
                 return
